@@ -4,7 +4,7 @@ from models_file import create_tables, Publisher, Shop, Sale, Book, Stock
 
 
 login = 'postgres'
-password = 'password'
+password = 'Jaguar2427'
 host_name = "localhost:5432"
 data_base_name = 'netology'
 DSN = f'postgresql://{login}:{password}@{host_name}/{data_base_name}'
@@ -45,7 +45,7 @@ sale2 = Sale(price='50.5', data_sale="2022-10-25T09:45:24.552Z", stock=stock1, c
 session.add_all([sale1, sale2])
 session.commit()
 
-session.close()
+# session.close()
 
 
 def publisher_data(class_):
@@ -54,29 +54,22 @@ def publisher_data(class_):
     if id_:
         for c in session.query(class_).filter(class_.id == id_).all():
             print(c)
-
     elif name:
         for c in session.query(class_).filter(class_.name == name).all():
             print(c)
 
 
-def publisher_shop(class_):
-    id_ = input('Введите id издателя:')
-    name = input('Введите name издателя:')
-    query = session.query(Shop)
-    query = query.join(Stock)
-    query = query.join(Book)
-    query = query.join(Publisher)
-    if id:
-        for c in query.filter(class_.id == id_).all():
-            print(c)
-
-    elif name:
-        for c in query.filter(class_.name == name).all():
-            print(c)
-
+def get_shops(res): #Функция принимает обязательный параметр
+    query = session.query( #Создаем общее тело запроса на выборку данных и сохраняем в переменную
+        Book.title, Shop.name, Sale.price, Sale.data_sale, #Название книги, имя магазина, стоимость продажи и дату продажи
+    ).select_from(Shop).join(Stock).join(Book).join(Publisher).join(Sale)
+    if res.isdigit(): #Проверяем переданные данные в функцию на то, что строка состоит только из чисел
+        query = query.filter(Publisher.id == res).all() #Обращаемся к запросу, который составили ранее, и применяем фильтрацию, где айди публициста равно переданным данным в функцию, и сохраняем в переменную
+    else:
+        query = query.filter(Publisher.name == res).all() #Обращаемся к запросу, который составили ранее, и применяем фильтрацию, где имя публициста равно переданным данным в функцию, и сохраняем в переменную
+    for title, name, price, date_sale in query: #Проходим в цикле по переменой, в которой сохраняем результат фильтрации, и при каждой итерации получаем кортеж и распаковываем значения в 4 переменные
+        print(f"{title: <40} | {name: <10} | {price: <5} | {data_sale.strftime('%d-%m-%Y')}")#Передаем в форматированную строку переменные, которые содержат имя книги, название магазина, стоимость продажи и дату продажи
 
 if __name__ == "__main__":
-
-    publisher_data(Publisher)
-    publisher_shop(Publisher)
+    res = input('Введите Id (1 или 2) или имя издателя (Лабиринт или Эксмо): ')
+    get_shops(res)
